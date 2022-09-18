@@ -12,6 +12,7 @@ class AssetStats:
 
 @dataclass
 class AssetData:
+    ticker : str
     name : str
     stats : AssetStats
 
@@ -40,12 +41,13 @@ def calc_stats(df):
     ma50_gt_ma200 = ma50 > ma200
     return AssetStats(relative_ma, above_ma200, ma50_gt_ma200)
 
-def create_report(ticker, asset_stats):
-    s = "Ticker: {}\n" \
+def create_report(ticker, name, asset_stats):
+    s = "Ticker: {} ({})\n" \
         "Relative ma: {:.2f}\n" \
         "Close Above MA200: {}\n" \
         "MA50 above MA200: {}"
     return s.format(ticker,
+                    name,
                     asset_stats.relative_ma,
                     asset_stats.above_ma200,
                     asset_stats.ma50_gt_ma200)
@@ -75,9 +77,10 @@ if __name__ == "__main__":
     stats_per_ticker = {}
     for ticker in l:
         stats = get_stats(ticker[0])
-        stats_per_ticker[ticker] = AssetData(ticker[1], stats)
+        stats_per_ticker[ticker] = AssetData(ticker[0], ticker[1], stats)
 
     a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.relative_ma, reverse=True)
     for key, item in a:
-        print(create_report(key, item.stats))
+        print(create_report(item.ticker, item.name, item.stats))
+        print("---")
 
