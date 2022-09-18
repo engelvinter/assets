@@ -1,0 +1,21 @@
+# Portfolio
+IVV:
+  name: Core S&P 500
+EUNK.F:
+  name: MSCI Europe
+XDJP.F:
+  name: Nikkei 225
+XMME.F:
+  name: MSCI Emerging Markets
+SXR1.F:
+  name: MSCI Pacific ex. Japan
+IQQP.F:
+  name: European Property Yield
+M9SA.F:
+  name: Rogers Int. Commodity Index
+GC=F:
+  name: Gold Comex
+JPGL.F:
+  name: Global Equity multi factor
+UIMB.F:
+  name: TIPS 10+ years

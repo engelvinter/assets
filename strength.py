@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from numpy import double
 import yfinance as yf
 from pandas.tseries.offsets import DateOffset
+import yaml
 
 @dataclass
 class AssetStats:
@@ -59,28 +60,22 @@ def get_stats(ticker):
     return stats
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument('ticker', type=str, help='ticker symbol')
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Calculates momentum strength of assets in portfolio")
+    parser.add_argument("-p", "--portfolio", dest="portfolio", type=str, required = True, help='portfolio file name')
+    args = parser.parse_args()
 
-    l = [ ("IVV", "Core S&P 500"), 
-          ("EUNK.F", "MSCI Europe"),
-          ("XDJP.F", "Nikkei 225"),
-          ("XMME.F", "MSCI Emerging Markets"),
-          ("SXR1.F", "MSCI Pacific ex. Japan"), 
-          ("IQQP.F", "European Property Yield"), 
-          ("M9SA.F", "Rogers Int. Commodity Index"),
-          ("GC=F", "Gold"),
-          ("JPGL.F", "Global Equity multi factor"),
-          ("UIMB.F", "TIPS 10+ years")]
+    try:
+        f = open(args.portfolio)
+        list = yaml.safe_load(f)
 
-    stats_per_ticker = {}
-    for ticker in l:
-        stats = get_stats(ticker[0])
-        stats_per_ticker[ticker] = AssetData(ticker[0], ticker[1], stats)
+        stats_per_ticker = {}
+        for ticker in list:
+            stats = get_stats(ticker)
+            stats_per_ticker[ticker] = AssetData(ticker, list[ticker]["name"], stats)
 
-    a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.relative_ma, reverse=True)
-    for key, item in a:
-        print(create_report(item.ticker, item.name, item.stats))
-        print("---")
-
+        a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.relative_ma, reverse=True)
+        for key, item in a:
+            print(create_report(item.ticker, item.name, item.stats))
+            print("---")
+    except (FileNotFoundError) as e:
+        print(e)
