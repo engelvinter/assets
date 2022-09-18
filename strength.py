@@ -61,8 +61,6 @@ if __name__ == "__main__":
     #parser.add_argument('ticker', type=str, help='ticker symbol')
     #args = parser.parse_args()
 
-    # Use yaml https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
-
     l = [ ("IVV", "Core S&P 500"), 
           ("EUNK.F", "MSCI Europe"),
           ("XDJP.F", "Nikkei 225"),
@@ -78,9 +76,6 @@ if __name__ == "__main__":
     for ticker in l:
         stats = get_stats(ticker[0])
         stats_per_ticker[ticker] = AssetData(ticker[1], stats)
-
-# sorted(dict, key=lambda x: x[1].stats.relative_ma)
-    #https://stackoverflow.com/questions/2444697/python-2-dict-items-sort-in-python-3
 
     a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.relative_ma, reverse=True)
     for key, item in a:
