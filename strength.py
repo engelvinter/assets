@@ -42,7 +42,7 @@ def calc_stats(df):
 
 def create_report(ticker, asset_stats):
     s = "Ticker: {}\n" \
-        "Relative ma 3,6,12: {:.2f}\n" \
+        "Relative ma: {:.2f}\n" \
         "Close Above MA200: {}\n" \
         "MA50 above MA200: {}"
     return s.format(ticker,
@@ -79,5 +79,5 @@ if __name__ == "__main__":
 
     a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.relative_ma, reverse=True)
     for key, item in a:
-        print("{} : {}".format(item.name, item.stats))
+        print(create_report(key, item.stats))
 
