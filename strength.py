@@ -7,7 +7,7 @@ import yaml
 
 @dataclass
 class AssetStats:
-    relative_ma : float
+    compound_ma : float
     above_ma200 : bool
     ma50_gt_ma200 : bool
 
@@ -27,7 +27,7 @@ def calc_normalized_average(df, period):
     norm_av = (new_df.Close.mean() - new_df.Close[0]) / new_df.Close[0];
     return norm_av
 
-def calc_relative_ma(df):
+def calc_compound_ma(df):
     ma_sum = calc_normalized_average(df, DateOffset(months=12))
     ma_sum += calc_normalized_average(df, DateOffset(months=6))
     ma_sum += calc_normalized_average(df, DateOffset(months=3))
@@ -35,21 +35,21 @@ def calc_relative_ma(df):
     return ma_sum / 3
 
 def calc_stats(df):
-    relative_ma = round(calc_relative_ma(df), 2)
+    compound_ma = round(calc_compound_ma(df), 2)
     ma200 = calc_average(df, "200B")
     above_ma200 = df[-1:].Close[0] > ma200
     ma50 = calc_average(df, "50B")
     ma50_gt_ma200 = ma50 > ma200
-    return AssetStats(relative_ma, above_ma200, ma50_gt_ma200)
+    return AssetStats(compound_ma, above_ma200, ma50_gt_ma200)
 
 def create_report(ticker, name, asset_stats):
     s = "Ticker: {} ({})\n" \
-        "Relative ma: {:.2f}\n" \
+        "Compound ma: {:.2f}\n" \
         "Close Above MA200: {}\n" \
         "MA50 above MA200: {}"
     return s.format(ticker,
                     name,
-                    asset_stats.relative_ma,
+                    asset_stats.compound_ma,
                     asset_stats.above_ma200,
                     asset_stats.ma50_gt_ma200)
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
             stats = get_stats(ticker)
             stats_per_ticker[ticker] = AssetData(ticker, list[ticker]["name"], stats)
 
-        a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.relative_ma, reverse=True)
+        a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.compound_ma, reverse=True)
         for key, item in a:
             print(create_report(item.ticker, item.name, item.stats))
             print("---")
