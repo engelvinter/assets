@@ -65,20 +65,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Calculates momentum strength of assets in portfolio")
     parser.add_argument("-p", "--portfolio", dest="portfolio", type=str, required = True, help="portfolio file name")
     parser.add_argument("-ma", dest="ma_period", type=str, choices=["136", "3612", "13612"], default="136", help="compound ma period")
+    parser.add_argument("-n", "--number", dest="number", type=int, default=100, help="number of assets to show")
     args = parser.parse_args()
 
     try:
         f = open(args.portfolio)
         list = yaml.safe_load(f)
 
-        stats_per_ticker = {}
+        stats_tickers = []
         for ticker in list:
             df = get_ticker(ticker)
             stats = calc_stats(df, get_ma_period(args.ma_period))
-            stats_per_ticker[ticker] = AssetData(ticker, list[ticker]["name"], stats)
+            stats_tickers.append(AssetData(ticker, list[ticker]["name"], stats))
 
-        a = sorted(stats_per_ticker.items(), key=lambda item: item[1].stats.compound_ma, reverse=True)
-        for key, item in a:
+        sorted_tickers = sorted(stats_tickers, key=lambda item: item.stats.compound_ma, reverse=True)
+        limited_tickers = sorted_tickers[:args.number]
+        for item in limited_tickers:
             print(create_report(item.ticker, item.name, item.stats))
             print("---")
     except (FileNotFoundError) as e:
