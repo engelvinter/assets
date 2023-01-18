@@ -52,8 +52,8 @@ def create_report(ticker, name, asset_stats):
                     asset_stats.above_ma200,
                     asset_stats.ma50_gt_ma200)
 
-def get_ticker(ticker):
-    ticker = yf.Ticker(ticker)
+def get_history(symbol):
+    ticker = yf.Ticker(symbol)
     df = ticker.history("1y")
     return df
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
         stats_tickers = []
         for ticker in list:
-            df = get_ticker(ticker)
+            df = get_history(ticker)
             stats = calc_stats(df, get_ma_period(args.ma_period))
             stats_tickers.append(AssetData(ticker, list[ticker]["name"], stats))
 
