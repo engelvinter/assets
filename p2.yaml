@@ -1,0 +1,21 @@
+# Portfolio
+IEV:
+  name: Europe
+SPY:
+  name: S&P 500
+EWJ:
+  name: MSCI Japan
+IEEM.MI:
+  name: MSCI EM UCITS ETF USD
+XACT-SMABOLAG.ST:
+  name: Småbolag Sverige
+C090.DE:
+  name: Equal Weight Commodity
+IEF:
+  name: 7-10 year treasury bond
+G2X.DE:
+  name: Gold Miners
+IXC:
+  name: Global Energy
+VNQ:
+  name: Real Estate
