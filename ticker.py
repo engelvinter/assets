@@ -14,3 +14,5 @@ if __name__ == "__main__":
     df = get_history(args.symbol)
     print("Symbol: {}".format(args.symbol))
     print("Start: {}".format(df.head(1).index[0]))
+    pct_change = df.Close.resample('A').last().pct_change().dropna() * 100
+    print(pct_change.to_string(float_format=lambda x: "{:.1f} %".format(x)))
