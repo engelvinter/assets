@@ -14,7 +14,7 @@ class Asset:
 @dataclass
 class Portfolio:
     cash: float
-    assets : list
+    holdings : list
 
 def get_symbol_prices(symbol, period):
     ticker = yf.Ticker(symbol)
@@ -43,7 +43,7 @@ def calc_momentum_score(asset_prices):
 
     return mom.dropna()
 
-def evaluate(portfolio, asset_prices, scores):
+def trend_3612(portfolio, asset_prices, scores):
     max_asset_index = scores.nlargest(3).index
     date = scores.name
     closes = asset_prices.loc[date]
@@ -70,7 +70,7 @@ def evaluate(portfolio, asset_prices, scores):
 
 def simulate(portfolio, asset_prices, momentum_score, freq):
     score = momentum_score.groupby(pd.Grouper(freq=freq)).tail(1)
-    tmp = score.apply(lambda scores: evaluate(portfolio, asset_prices, scores), axis = 1)
+    tmp = score.apply(lambda scores: trend_3612(portfolio, asset_prices, scores), axis = 1)
     return tmp
 
 if __name__ == "__main__":
@@ -82,11 +82,11 @@ if __name__ == "__main__":
         f = open(args.portfolio)
         assets = yaml.safe_load(f)
 
-        df = get_asset_prices(assets.keys())
-        mom = calc_momentum_score(df)
+        prices = get_asset_prices(assets.keys())
+        mom = calc_momentum_score(prices)
 
         p = Portfolio(10000, [])
-        tmp = simulate(p, df, mom, "M")
+        tmp = simulate(p, prices, mom, "M")
 
         with open('simulate.txt', 'w') as f:
             f.write(tmp.to_csv())
