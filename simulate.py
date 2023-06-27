@@ -49,10 +49,10 @@ def trend_3612(portfolio, asset_prices, scores):
     closes = asset_prices.loc[date]
 
     # sell all
-    if len(portfolio.assets) > 0:
-        for asset in portfolio.assets:
+    if len(portfolio.holdings) > 0:
+        for asset in portfolio.holdings:
             portfolio.cash += asset.amount * closes[asset.symbol]
-        portfolio.assets.clear()
+        portfolio.holdings.clear()
 
     portfolio_value = portfolio.cash
     invest = portfolio.cash / 3
@@ -64,13 +64,13 @@ def trend_3612(portfolio, asset_prices, scores):
         a = Asset(asset,
                   closes[asset],
                   invest / closes[asset])
-        portfolio.assets.append(a)
+        portfolio.holdings.append(a)
 
     return pd.Series([max_asset_index.to_list(), portfolio_value], index=["Assets", "Portfolio Value"])
 
-def simulate(portfolio, asset_prices, momentum_score, freq):
+def simulate(portfolio, asset_prices, momentum_score, strategy, freq):
     score = momentum_score.groupby(pd.Grouper(freq=freq)).tail(1)
-    tmp = score.apply(lambda scores: trend_3612(portfolio, asset_prices, scores), axis = 1)
+    tmp = score.apply(lambda scores: strategy(portfolio, asset_prices, scores), axis = 1)
     return tmp
 
 if __name__ == "__main__":
@@ -79,14 +79,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        f = open(args.portfolio)
-        assets = yaml.safe_load(f)
+        default_strategies = { }
+        default_strategies["trend_3612"] = trend_3612
 
-        prices = get_asset_prices(assets.keys())
+        f = open(args.portfolio)
+        loaded_strategy = yaml.safe_load(f)
+
+        assets = loaded_strategy["assets"].keys()
+        prices = get_asset_prices(assets)
         mom = calc_momentum_score(prices)
 
         p = Portfolio(10000, [])
-        tmp = simulate(p, prices, mom, "M")
+        strategy_name = loaded_strategy["strategy"]
+        freq = loaded_strategy["frequency"]
+        tmp = simulate(p, prices, mom, default_strategies[strategy_name], freq)
 
         with open('simulate.txt', 'w') as f:
             f.write(tmp.to_csv())
