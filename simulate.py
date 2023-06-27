@@ -66,7 +66,7 @@ def evaluate(portfolio, portfolio_history, scores):
                   invest / closes[asset])
         portfolio.assets.append(a)
 
-    return [max_asset_index.to_list(), portfolio_value]
+    return pd.Series([max_asset_index.to_list(), portfolio_value], index=["Assets", "Portfolio Value"])
 
 def simulate(portfolio, portfolio_history, momentum_score):
     monthly_score = momentum_score.groupby(pd.Grouper(freq='M')).tail(1)
