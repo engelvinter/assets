@@ -75,7 +75,7 @@ def simulate(portfolio, asset_prices, momentum_score, freq):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Simulates momentum strategy using given portfolio")
-    parser.add_argument("-p", "--portfolio", dest="portfolio", type=str, required = True, help="portfolio file name")
+    parser.add_argument("portfolio", type=str, help="portfolio file name")
     args = parser.parse_args()
 
     try:
