@@ -2,7 +2,7 @@ import argparse
 import yfinance as yf
 import yaml
 import pandas as pd
-
+import os
 from dataclasses import dataclass
 
 @dataclass
@@ -75,27 +75,29 @@ def simulate(portfolio, asset_prices, momentum_score, strategy, freq):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Simulates momentum strategy using given portfolio")
-    parser.add_argument("portfolio", type=str, help="portfolio file name")
+    parser.add_argument("configurations", nargs="+", help="filename(s) to yaml configurations of strategies")
     args = parser.parse_args()
 
     try:
         default_strategies = { }
         default_strategies["trend_3612"] = trend_3612
 
-        f = open(args.portfolio)
-        loaded_strategy = yaml.safe_load(f)
+        for config in args.configurations:
+            f = open(config)
+            loaded_strategy = yaml.safe_load(f)
 
-        assets = loaded_strategy["assets"].keys()
-        prices = get_asset_prices(assets)
-        mom = calc_momentum_score(prices)
+            assets = loaded_strategy["assets"].keys()
+            prices = get_asset_prices(assets)
+            mom = calc_momentum_score(prices)
 
-        p = Portfolio(10000, [])
-        strategy_name = loaded_strategy["strategy"]
-        freq = loaded_strategy["frequency"]
-        tmp = simulate(p, prices, mom, default_strategies[strategy_name], freq)
-
-        with open('simulate.txt', 'w') as f:
-            f.write(tmp.to_csv())
+            p = Portfolio(10000, [])
+            strategy_name = loaded_strategy["strategy"]
+            freq = loaded_strategy["frequency"]
+            tmp = simulate(p, prices, mom, default_strategies[strategy_name], freq)
+        
+            name = os.path.splitext(config)[0]
+            with open(f'simulate_{name}.txt', 'w') as f:
+                f.write(tmp.to_csv())
 
     except (FileNotFoundError) as e:
         print(e)
