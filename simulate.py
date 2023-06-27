@@ -68,9 +68,9 @@ def evaluate(portfolio, asset_prices, scores):
 
     return pd.Series([max_asset_index.to_list(), portfolio_value], index=["Assets", "Portfolio Value"])
 
-def simulate(portfolio, asset_prices, momentum_score):
-    monthly_score = momentum_score.groupby(pd.Grouper(freq='M')).tail(1)
-    tmp = monthly_score.apply(lambda scores: evaluate(portfolio, asset_prices, scores), axis = 1)
+def simulate(portfolio, asset_prices, momentum_score, freq):
+    score = momentum_score.groupby(pd.Grouper(freq=freq)).tail(1)
+    tmp = score.apply(lambda scores: evaluate(portfolio, asset_prices, scores), axis = 1)
     return tmp
 
 if __name__ == "__main__":
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         mom = calc_momentum_score(df)
 
         p = Portfolio(10000, [])
-        tmp = simulate(p, df, mom)
+        tmp = simulate(p, df, mom, "M")
 
         with open('simulate.txt', 'w') as f:
             f.write(tmp.to_csv())
