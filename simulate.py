@@ -22,7 +22,7 @@ def get_symbol_prices(symbol, period):
     df.name = symbol
     return df
 
-def get_portfolio_prices(symbol_list):
+def get_asset_prices(symbol_list):
     data = []
     for ticker in symbol_list:
         history = get_symbol_prices(ticker, "max")
@@ -34,19 +34,19 @@ def get_portfolio_prices(symbol_list):
     df = df.asfreq('B')
     return df.dropna()
 
-def calc_momentum_score(portfolio_history):
-    df3 = portfolio_history.pct_change(90)
-    df6 = portfolio_history.pct_change(180)
-    df12 = portfolio_history.pct_change(360)
+def calc_momentum_score(asset_prices):
+    df3 = asset_prices.pct_change(90)
+    df6 = asset_prices.pct_change(180)
+    df12 = asset_prices.pct_change(360)
 
     mom = (df3 + df6 + df12) / 3
 
     return mom.dropna()
 
-def evaluate(portfolio, portfolio_history, scores):
+def evaluate(portfolio, asset_prices, scores):
     max_asset_index = scores.nlargest(3).index
     date = scores.name
-    closes = portfolio_history.loc[date]
+    closes = asset_prices.loc[date]
 
     # sell all
     if len(portfolio.assets) > 0:
@@ -68,9 +68,9 @@ def evaluate(portfolio, portfolio_history, scores):
 
     return pd.Series([max_asset_index.to_list(), portfolio_value], index=["Assets", "Portfolio Value"])
 
-def simulate(portfolio, portfolio_history, momentum_score):
+def simulate(portfolio, asset_prices, momentum_score):
     monthly_score = momentum_score.groupby(pd.Grouper(freq='M')).tail(1)
-    tmp = monthly_score.apply(lambda scores: evaluate(portfolio, portfolio_history, scores), axis = 1)
+    tmp = monthly_score.apply(lambda scores: evaluate(portfolio, asset_prices, scores), axis = 1)
     return tmp
 
 if __name__ == "__main__":
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         f = open(args.portfolio)
         assets = yaml.safe_load(f)
 
-        df = get_portfolio_prices(assets.keys())
+        df = get_asset_prices(assets.keys())
         mom = calc_momentum_score(df)
 
         p = Portfolio(10000, [])
