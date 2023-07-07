@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import argparse
 import yfinance as yf
 import yaml
 import pandas as pd
 import os
 from dataclasses import dataclass
+from typing import Callable
 
 @dataclass
 class Holding:
@@ -20,12 +23,13 @@ class Asset:
 class Strategy:
     name: str
     frequency: str
-    assets : list
+    assets : list[Asset]
+    calculation: Callable[[Portfolio, pd.DataFrame, pd.DataFrame], pd.Series]
 
 @dataclass
 class Portfolio:
     cash: float
-    holdings : list
+    holdings : list[Holding]
 
 def get_symbol_prices(symbol, period):
     ticker = yf.Ticker(symbol)
@@ -79,15 +83,18 @@ def trend_3612(portfolio, asset_prices, scores):
 
     return pd.Series([max_asset_index.to_list(), portfolio_value], index=["Assets", "Portfolio Value"])
 
-def simulate(portfolio, asset_prices, momentum_score, strategy, freq):
+def simulate(portfolio, strategy, asset_prices, momentum_score, freq):
     score = momentum_score.groupby(pd.Grouper(freq=freq)).tail(1)
-    tmp = score.apply(lambda scores: strategy(portfolio, asset_prices, scores), axis = 1)
+    tmp = score.apply(lambda scores: strategy.calculation(portfolio, asset_prices, scores), axis = 1)
     return tmp
 
 #read_strategy_configuration
 #construct_strategy
 
 def read_strategy(filename):
+    default_calculations = { }
+    default_calculations["trend_3612"] = trend_3612
+
     f = open(filename)
     loaded_strategy = yaml.safe_load(f)
     name = loaded_strategy["strategy"]
@@ -100,7 +107,7 @@ def read_strategy(filename):
             percent = 0
         assets.append(Asset(symbol, percent))
 
-    return Strategy(name, freq, assets)
+    return Strategy(name, freq, assets, default_calculations[name])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Simulates momentum strategy using given portfolio")
@@ -108,9 +115,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        default_strategies = { }
-        default_strategies["trend_3612"] = trend_3612
-
         for config in args.configurations:
             strat = read_strategy(config)
 
@@ -119,7 +123,7 @@ if __name__ == "__main__":
             mom = calc_momentum_score(prices)
 
             p = Portfolio(10000, [])
-            tmp = simulate(p, prices, mom, default_strategies[strat.name], strat.frequency)
+            tmp = simulate(p, strat, prices, mom, strat.frequency)
         
             name = os.path.splitext(config)[0]
             with open(f'simulate_{name}.txt', 'w') as f:

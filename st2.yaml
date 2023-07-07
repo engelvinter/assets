@@ -1,4 +1,4 @@
-strategy: trend_3612
+calculation: trend_3612
 frequency: M
 assets:
   IEV:
