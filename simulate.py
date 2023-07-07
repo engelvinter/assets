@@ -97,7 +97,7 @@ def read_strategy(filename):
         if "percent" in values:
             percent = values["percent"]
         else:
-            percent = None
+            percent = 0
         assets.append(Asset(symbol, percent))
 
     return Strategy(name, freq, assets)
