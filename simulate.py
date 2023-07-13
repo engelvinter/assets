@@ -20,11 +20,11 @@ class Asset:
     percent: int
 
 @dataclass
-class Strategy:
+class Configuration:
     name: str
     frequency: str
     assets : list[Asset]
-    calculation: Callable[[Portfolio, pd.DataFrame, pd.DataFrame], pd.Series]
+    strategy: Callable[[Portfolio, pd.DataFrame, pd.DataFrame], pd.Series]
 
 @dataclass
 class Portfolio:
@@ -83,49 +83,49 @@ def trend_3612(portfolio, asset_prices, scores):
 
     return pd.Series([max_asset_index.to_list(), portfolio_value], index=["Assets", "Portfolio Value"])
 
-def simulate(portfolio, strategy, asset_prices, momentum_score, freq):
+def simulate(portfolio, config, asset_prices, momentum_score, freq):
     score = momentum_score.groupby(pd.Grouper(freq=freq)).tail(1)
-    tmp = score.apply(lambda scores: strategy.calculation(portfolio, asset_prices, scores), axis = 1)
+    tmp = score.apply(lambda scores: config.strategy(portfolio, asset_prices, scores), axis = 1)
     return tmp
 
 #read_strategy_configuration
 #construct_strategy
 
-def read_strategy(filename):
+def read_configuration(filename):
     default_calculations = { }
     default_calculations["trend_3612"] = trend_3612
 
     f = open(filename)
-    loaded_strategy = yaml.safe_load(f)
-    name = loaded_strategy["strategy"]
-    freq = loaded_strategy["frequency"]
+    yaml_conf = yaml.safe_load(f)
+    strat = yaml_conf["strategy"]
+    freq = yaml_conf["frequency"]
     assets = []
-    for symbol, values in loaded_strategy["assets"].items():
+    for symbol, values in yaml_conf["assets"].items():
         if "percent" in values:
             percent = values["percent"]
         else:
             percent = 0
         assets.append(Asset(symbol, percent))
 
-    return Strategy(name, freq, assets, default_calculations[name])
+    return Configuration(strat, freq, assets, default_calculations[strat])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Simulates momentum strategy using given portfolio")
-    parser.add_argument("configurations", nargs="+", help="filename(s) to yaml configurations of strategies")
+    parser.add_argument("filenames", nargs="+", help="filename(s) to yaml configurations of strategies")
     args = parser.parse_args()
 
     try:
-        for config in args.configurations:
-            strat = read_strategy(config)
+        for filename in args.filenames:
+            config = read_configuration(filename)
 
-            symbols = [asset.symbol for asset in strat.assets]
+            symbols = [asset.symbol for asset in config.assets]
             prices = get_asset_prices(symbols)
             mom = calc_momentum_score(prices)
 
             p = Portfolio(10000, [])
-            tmp = simulate(p, strat, prices, mom, strat.frequency)
+            tmp = simulate(p, config, prices, mom, config.frequency)
         
-            name = os.path.splitext(config)[0]
+            name = os.path.splitext(filename)[0]
             with open(f'simulate_{name}.txt', 'w') as f:
                 f.write(tmp.to_csv())
 
