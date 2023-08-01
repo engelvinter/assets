@@ -77,8 +77,9 @@ def clean_data(df):
     df[Column] = df[Column]
     return df
 
-df = pd.read_csv(sys.argv[1])
+if __name__ == "__main__":
+    df = pd.read_csv(sys.argv[1])
 
-df_clean = clean_data(df.copy())
-df_clean.head()
-print(df)
+    df_clean = clean_data(df.copy())
+    df_clean.head()
+    print(df)
