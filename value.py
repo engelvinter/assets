@@ -77,9 +77,41 @@ def clean_data(df):
     df[Column] = df[Column]
     return df
 
+"""
+Index(['Börsdata ID', 'Bolagsnamn', 'Kursutveck. - Utveck.  6m',
+       'Kursutveck. - Utveck.  1år', 'Kursutveck. - Utveck.  3m',
+       'EV/EBITDA - Senaste', 'P/FCF - Senaste', 'Utdelning - Senaste',
+       'Info - Ticker', 'Direktav. - Senaste', 'P/E - Senaste',
+       'P/S - Senaste', 'P/B - Senaste', 'Info - Tid', 'Info - Aktiekurs',
+       'Info - Rapport', 'Info - Sektor'],
+      dtype='object')
+"""
+def create_ranking(df):
+    rankings = { 'P/E - Senaste': -1, 'P/FCF - Senaste': -1, 'P/S - Senaste': -1, 'Direktav. - Senaste': 1 }
+    ratio_scores = pd.DataFrame()
+    for column, rank in rankings.items():
+        ratio_scores[column] = df[column].rank(ascending=rank)
+    return ratio_scores
+
+def calc_momentum(df):
+    mom = df[['Kursutveck. - Utveck.  3m', 'Kursutveck. - Utveck.  6m', 'Kursutveck. - Utveck.  1år']].mean(axis=1)
+    return mom
+
+def calc_composite_value(df):
+    comp_value = df.mean(axis=1)
+    return comp_value
+
 if __name__ == "__main__":
     df = pd.read_csv(sys.argv[1])
 
     df_clean = clean_data(df.copy())
     df_clean.head()
-    print(df)
+
+    ranking = create_ranking(df_clean)
+    df_clean['comp_value'] = calc_composite_value(ranking)
+    df_clean['momentum'] = calc_momentum(df_clean)
+
+    a = df_clean.sort_values('comp_value', ascending=True)
+
+    print(a.head(10))
+    print(a.tail(10))
