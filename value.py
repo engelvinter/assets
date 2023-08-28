@@ -87,7 +87,7 @@ Index(['Börsdata ID', 'Bolagsnamn', 'Kursutveck. - Utveck.  6m',
       dtype='object')
 """
 def create_ranking(df):
-    rankings = { 'P/E - Senaste': -1, 'P/FCF - Senaste': -1, 'P/S - Senaste': -1, 'Direktav. - Senaste': 1 }
+    rankings = { 'P/E - Senaste': -1, 'P/FCF - Senaste': -1, 'EV/EBITDA - Senaste': -1, 'P/S - Senaste': -1, 'Direktav. - Senaste': 1 }
     ratio_scores = pd.DataFrame()
     for column, rank in rankings.items():
         ratio_scores[column] = df[column].rank(ascending=rank)
@@ -111,7 +111,8 @@ if __name__ == "__main__":
     df_clean['comp_value'] = calc_composite_value(ranking)
     df_clean['momentum'] = calc_momentum(df_clean)
 
-    a = df_clean.sort_values('comp_value', ascending=True)
+    a = df_clean.sort_values('comp_value', ascending=False)
 
-    print(a.head(10))
-    print(a.tail(10))
+    result = a.head(80).sort_values('momentum', ascending=False)
+
+    print(result.head(15))
